@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Events\TaskUpdated;
+use App\Jobs\SendTaskAssignmentEmail;
 use App\Models\Task;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -25,7 +27,16 @@ class TaskService
     {
         $data['created_by'] = auth()->id();
 
-        return Task::create($data);
+        $task = Task::create($data);
+
+        if (! empty($task->assigned_user_id)) {
+            $task->load('assignedUser:id,name,email');
+            SendTaskAssignmentEmail::dispatch($task, $task->assignedUser);
+        }
+
+        TaskUpdated::dispatch($task, 'created');
+
+        return $task;
     }
 
     public function getTask(int $id): Task
@@ -40,7 +51,18 @@ class TaskService
 
     public function updateTask(Task $task, array $data): Task
     {
+        $wasAssigned = $task->assigned_user_id;
         $task->update($data);
+        $task->refresh();
+
+        if (
+            ! empty($task->assigned_user_id) &&
+            ($wasAssigned !== $task->assigned_user_id || ! $wasAssigned)
+        ) {
+            SendTaskAssignmentEmail::dispatch($task, $task->assignedUser);
+        }
+
+        TaskUpdated::dispatch($task, 'updated');
 
         return $task->fresh(['assignedUser:id,name,email', 'creator:id,name,email']);
     }
