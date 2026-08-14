@@ -49,6 +49,7 @@ docker-compose exec backend php artisan migrate:fresh --seed
 ```
 
 Access services:
+
 - **API**: http://localhost:8000
 - **PHPMyAdmin**: http://localhost:8080
 - **MySQL**: localhost:3307
@@ -57,20 +58,24 @@ Access services:
 ## 📚 API Documentation
 
 ### Swagger UI (Interactive)
+
 **http://localhost:8000/api/documentation**
 
 Features:
+
 - Interactive "Try it out" functionality
 - JWT token authentication
 - Request/response examples
 - Full endpoint documentation
 
 ### OpenAPI JSON
+
 **http://localhost:8000/docs**
 
 Static file: `docs/api-docs.json`
 
 ### Postman Collection
+
 Import: `docs/postman/Task-Management-API.postman_collection.json`
 
 ## 🔐 Authentication
@@ -91,50 +96,55 @@ curl -X GET http://localhost:8000/api/auth/tasks \
 ## 📡 API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Get current user |
-| POST | `/api/auth/refresh` | Refresh token |
+
+| Method | Endpoint            | Description      |
+| ------ | ------------------- | ---------------- |
+| POST   | `/api/auth/login`   | Login            |
+| POST   | `/api/auth/logout`  | Logout           |
+| GET    | `/api/auth/me`      | Get current user |
+| POST   | `/api/auth/refresh` | Refresh token    |
 
 ### Tasks
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/auth/tasks` | List tasks |
-| POST | `/api/auth/tasks` | Create task |
-| GET | `/api/auth/tasks/{id}` | Get task |
-| PUT | `/api/auth/tasks/{id}` | Update task |
+
+| Method | Endpoint               | Description |
+| ------ | ---------------------- | ----------- |
+| GET    | `/api/auth/tasks`      | List tasks  |
+| POST   | `/api/auth/tasks`      | Create task |
+| GET    | `/api/auth/tasks/{id}` | Get task    |
+| PUT    | `/api/auth/tasks/{id}` | Update task |
 | DELETE | `/api/auth/tasks/{id}` | Delete task |
 
 ### Comments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/auth/tasks/{id}/comments` | List comments |
-| POST | `/api/auth/tasks/{id}/comments` | Add comment |
-| PUT | `/api/auth/comments/{id}` | Update comment |
-| DELETE | `/api/auth/comments/{id}` | Delete comment |
+
+| Method | Endpoint                        | Description    |
+| ------ | ------------------------------- | -------------- |
+| GET    | `/api/auth/tasks/{id}/comments` | List comments  |
+| POST   | `/api/auth/tasks/{id}/comments` | Add comment    |
+| PUT    | `/api/auth/comments/{id}`       | Update comment |
+| DELETE | `/api/auth/comments/{id}`       | Delete comment |
 
 ### Attachments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/auth/tasks/{id}/attachments` | List files |
-| POST | `/api/auth/tasks/{id}/attachments` | Upload file |
-| GET | `/api/auth/attachments/{id}/download` | Download |
-| GET | `/api/auth/attachments/{id}/thumbnail` | Get thumbnail |
-| DELETE | `/api/auth/attachments/{id}` | Delete file |
+
+| Method | Endpoint                               | Description   |
+| ------ | -------------------------------------- | ------------- |
+| GET    | `/api/auth/tasks/{id}/attachments`     | List files    |
+| POST   | `/api/auth/tasks/{id}/attachments`     | Upload file   |
+| GET    | `/api/auth/attachments/{id}/download`  | Download      |
+| GET    | `/api/auth/attachments/{id}/thumbnail` | Get thumbnail |
+| DELETE | `/api/auth/attachments/{id}`           | Delete file   |
 
 ## 🧪 Test Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@example.com | password |
+| Role    | Email               | Password |
+| ------- | ------------------- | -------- |
+| Admin   | admin@example.com   | password |
 | Manager | manager@example.com | password |
-| User | john@example.com | password |
+| User    | john@example.com    | password |
 
 ## 🛠️ Technology Stack
 
 ### Backend
+
 - **Laravel 13** - PHP Framework
 - **JWT Auth** - Authentication
 - **Redis** - Caching
@@ -143,6 +153,7 @@ curl -X GET http://localhost:8000/api/auth/tasks \
 - **L5-Swagger** - API Documentation
 
 ### Features
+
 - RESTful API design
 - Redis caching with TTL
 - Background jobs for emails
@@ -151,13 +162,17 @@ curl -X GET http://localhost:8000/api/auth/tasks \
 
 ## 📁 Documentation
 
-| File | Description |
-|------|-------------|
-| `backend/README.md` | Backend setup & API docs |
-| `docs/README.md` | API documentation |
-| `docs/api-docs.json` | OpenAPI spec |
-| `docs/postman/*.json` | Postman collection |
-| `2026-08-13-task-management-platform-design.md` | Design document |
+| File                                            | Description              |
+| ----------------------------------------------- | ------------------------ |
+| `backend/README.md`                             | Backend setup & API docs |
+| `docs/README.md`                                | API documentation        |
+| `docs/api-docs.json`                            | OpenAPI spec             |
+| `docs/postman/*.json`                           | Postman collection       |
+| `2026-08-13-task-management-platform-design.md` | Design document          |
+
+demo link
+
+https://drive.google.com/file/d/1yobDuuIKqjw0q2nhky9KEFZysI8XM568/view?usp=sharing
 
 ## 📄 License
 
