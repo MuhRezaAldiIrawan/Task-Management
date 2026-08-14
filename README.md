@@ -238,15 +238,15 @@ curl -X GET http://localhost:8000/api/auth/tasks \
 
 ## 📁 Documentation
 
-| File                                            | Description                    |
-| ----------------------------------------------- | ------------------------------ |
-| `backend/README.md`                             | Backend setup & API docs       |
-| `frontend/README.md`                            | Frontend setup & app docs      |
-| `docs/README.md`                                | API documentation              |
-| `docs/architecture-decisions.md`                | Architecture decision record   |
-| `docs/api-docs.json`                            | OpenAPI spec                   |
-| `docs/postman/*.json`                           | Postman collection             |
-| `2026-08-13-task-management-platform-design.md` | Design document                |
+| File                                            | Description                  |
+| ----------------------------------------------- | ---------------------------- |
+| `backend/README.md`                             | Backend setup & API docs     |
+| `frontend/README.md`                            | Frontend setup & app docs    |
+| `docs/README.md`                                | API documentation            |
+| `docs/architecture-decisions.md`                | Architecture decision record |
+| `docs/api-docs.json`                            | OpenAPI spec                 |
+| `docs/postman/*.json`                           | Postman collection           |
+| `2026-08-13-task-management-platform-design.md` | Design document              |
 
 demo link
 
