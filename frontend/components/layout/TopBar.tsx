@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Search, Bell, ChevronDown, LogOut, User } from 'lucide-react';
+import { Search, ChevronDown, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -15,13 +15,25 @@ interface TopBarProps {
   className?: string;
 }
 
+interface NotificationItem {
+  id: string;
+  type: string;
+  read_at: string | null;
+  created_at: string | null;
+  data: {
+    message?: string;
+    task_title?: string;
+    task_id?: number;
+  };
+}
+
 export function TopBar({ user, className }: TopBarProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/auth/login';
   };
 
   return (
@@ -45,14 +57,8 @@ export function TopBar({ user, className }: TopBarProps) {
         </div>
       </div>
 
-      {/* Right side - Notifications & User */}
+      {/* Right side - User */}
       <div className="flex items-center gap-4">
-        {/* Notifications */}
-        <button className="relative p-2 rounded-md text-[var(--color-text-secondary)] hover:bg-slate-100 transition-colors">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
-
         {/* User Menu */}
         <div className="relative">
           <button

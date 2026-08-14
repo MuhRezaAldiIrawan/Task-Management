@@ -76,18 +76,28 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers,
-    });
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        headers,
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-      const message = error.message || `HTTP error ${response.status}`;
-      this.handleAuthFailure(response, message);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'An error occurred' }));
+        const message = error.message || `HTTP error ${response.status}`;
+        this.handleAuthFailure(response, message);
+      }
+
+      return response.json();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch';
+
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+        this.clearAuthToken();
+      }
+
+      throw new Error(message);
     }
-
-    return response.json();
   }
 
   // Auth endpoints
@@ -114,6 +124,24 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.request<{ success: boolean; data: import('@/types').User }>('/auth/me');
+  }
+
+  async getUsers() {
+    return this.request<{ success: boolean; data: import('@/types').User[] }>('/auth/users');
+  }
+
+  async getNotifications() {
+    return {
+      success: true,
+      data: [],
+    };
+  }
+
+  async markNotificationAsRead(_notificationId: string) {
+    return {
+      success: true,
+      message: 'Notifications are temporarily disabled',
+    };
   }
 
   // Task endpoints

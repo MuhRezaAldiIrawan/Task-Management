@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -35,11 +35,15 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -48,10 +52,54 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
       description: task?.description || '',
       status: task?.status || 'pending',
       priority: task?.priority || 'medium',
-      assigned_user_id: task?.assigned_user_id || null,
+      assigned_user_id: task?.assigned_user_id ?? null,
       due_date: task?.due_date || '',
     },
   });
+
+  const selectedAssignedUserId = watch('assigned_user_id');
+
+  useEffect(() => {
+    if (task) {
+      setValue('assigned_user_id', task.assigned_user_id ?? null, { shouldDirty: true });
+    } else {
+      setValue('assigned_user_id', null, { shouldDirty: true });
+    }
+  }, [task, setValue]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!isOpen) return;
+
+      const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('token');
+      if (!hasToken) {
+        setAvailableUsers([]);
+        setValue('assigned_user_id', task?.assigned_user_id ?? null, { shouldDirty: true });
+        setIsLoadingUsers(false);
+        return;
+      }
+
+      setIsLoadingUsers(true);
+      try {
+        const response = await api.getUsers();
+        const usersList = response.data ?? [];
+        setAvailableUsers(usersList);
+
+        if (task && task.assigned_user_id) {
+          setValue('assigned_user_id', task.assigned_user_id, { shouldDirty: true });
+        } else if (!task) {
+          setValue('assigned_user_id', null, { shouldDirty: true });
+        }
+      } catch {
+        setAvailableUsers([]);
+        setValue('assigned_user_id', task?.assigned_user_id ?? null, { shouldDirty: true });
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [isOpen, task, setValue]);
 
   const onSubmit = async (data: TaskFormData) => {
     setIsLoading(true);
@@ -136,10 +184,10 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
     { value: 'urgent', label: 'Urgent' },
   ];
 
-  const userOptions = users.map((u) => ({
+  const userOptions = [{ value: '', label: 'Unassigned' }, ...availableUsers.map((u) => ({
     value: u.id,
     label: u.name,
-  }));
+  }))];
 
   return (
     <Modal
@@ -182,11 +230,17 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
         {/* Assigned User */}
         <Select
           label="Assign To"
-          options={[{ value: '', label: 'Unassigned' }, ...userOptions]}
-          placeholder="Select a user"
-          {...register('assigned_user_id', {
-            setValueAs: (value) => (value ? parseInt(value, 10) : null),
-          })}
+          options={userOptions}
+          value={selectedAssignedUserId ?? ''}
+          disabled={isLoadingUsers}
+          onChange={(event) => {
+            const nextValue = event.target.value;
+            setValue('assigned_user_id', nextValue === '' ? null : Number(nextValue), {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            });
+          }}
         />
 
         {/* Due Date */}

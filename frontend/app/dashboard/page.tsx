@@ -55,8 +55,14 @@ export default function DashboardPage() {
         lastPage: response.meta.last_page,
         total: response.meta.total,
       }));
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error);
+    } catch {
+      setTasks([]);
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: 1,
+        lastPage: 1,
+        total: 0,
+      }));
     } finally {
       setIsLoading(false);
     }

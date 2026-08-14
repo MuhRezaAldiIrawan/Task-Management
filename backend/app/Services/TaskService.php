@@ -7,8 +7,10 @@ namespace App\Services;
 use App\Events\TaskUpdated;
 use App\Jobs\SendTaskAssignmentEmail;
 use App\Models\Task;
+use App\Notifications\TaskAssignedNotification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 
 class TaskService
 {
@@ -39,6 +41,8 @@ class TaskService
 
         if (! empty($task->assigned_user_id)) {
             $task->load('assignedUser:id,name,email');
+            $assignedBy = auth()->user();
+            Notification::send($task->assignedUser, new TaskAssignedNotification($task, $assignedBy));
             SendTaskAssignmentEmail::dispatch($task, $task->assignedUser);
         }
 
@@ -71,6 +75,8 @@ class TaskService
             ! empty($task->assigned_user_id) &&
             ($wasAssigned !== $task->assigned_user_id || ! $wasAssigned)
         ) {
+            $assignedBy = auth()->user();
+            Notification::send($task->assignedUser, new TaskAssignedNotification($task, $assignedBy));
             SendTaskAssignmentEmail::dispatch($task, $task->assignedUser);
         }
 

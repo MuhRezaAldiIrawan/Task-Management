@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\UserNotificationController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +17,9 @@ Route::prefix('auth')->group(function () {
         Route::post('refresh', [AuthController::class, 'refresh']);
 
         Route::apiResource('tasks', TaskController::class);
+        Route::get('users', [UserController::class, 'index']);
+        Route::get('notifications', [UserNotificationController::class, 'index']);
+        Route::put('notifications/{notification}/read', [UserNotificationController::class, 'markAsRead']);
 
         Route::get('tasks/{task}/attachments', [AttachmentController::class, 'index']);
         Route::post('tasks/{task}/attachments', [AttachmentController::class, 'store']);

@@ -40,36 +40,40 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })->create();
 
-function get_status_code(Throwable $e): int
-{
-    if ($e instanceof NotFoundHttpException) {
-        return Response::HTTP_NOT_FOUND;
-    }
+if (! function_exists('get_status_code')) {
+    function get_status_code(Throwable $e): int
+    {
+        if ($e instanceof NotFoundHttpException) {
+            return Response::HTTP_NOT_FOUND;
+        }
 
-    if (method_exists($e, 'getStatusCode')) {
-        return $e->getStatusCode();
-    }
+        if (method_exists($e, 'getStatusCode')) {
+            return $e->getStatusCode();
+        }
 
-    return Response::HTTP_INTERNAL_SERVER_ERROR;
+        return Response::HTTP_INTERNAL_SERVER_ERROR;
+    }
 }
 
-function get_error_message(Throwable $e, int $status): string
-{
-    if ($status === Response::HTTP_NOT_FOUND) {
-        return 'Resource not found';
-    }
+if (! function_exists('get_error_message')) {
+    function get_error_message(Throwable $e, int $status): string
+    {
+        if ($status === Response::HTTP_NOT_FOUND) {
+            return 'Resource not found';
+        }
 
-    if ($status === Response::HTTP_UNAUTHORIZED) {
-        return 'Unauthorized';
-    }
+        if ($status === Response::HTTP_UNAUTHORIZED) {
+            return 'Unauthorized';
+        }
 
-    if ($status === Response::HTTP_FORBIDDEN) {
-        return 'Forbidden';
-    }
+        if ($status === Response::HTTP_FORBIDDEN) {
+            return 'Forbidden';
+        }
 
-    if ($status === Response::HTTP_UNPROCESSABLE_ENTITY) {
-        return 'Validation failed';
-    }
+        if ($status === Response::HTTP_UNPROCESSABLE_ENTITY) {
+            return 'Validation failed';
+        }
 
-    return 'Server error';
+        return 'Server error';
+    }
 }
