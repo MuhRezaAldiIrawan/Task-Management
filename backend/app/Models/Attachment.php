@@ -18,6 +18,9 @@ class Attachment extends Model
     {
         return [
             'file_size' => 'integer',
+            'uploaded_at' => 'datetime',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
         ];
     }
 

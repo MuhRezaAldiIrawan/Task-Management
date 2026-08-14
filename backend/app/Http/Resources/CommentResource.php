@@ -14,12 +14,15 @@ class CommentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $createdAt = $this->created_at;
+        $updatedAt = $this->updated_at;
+
         return [
             'id' => $this->id,
             'content' => $this->comment,
             'user' => new UserResource($this->whenLoaded('user')),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at' => $createdAt instanceof \DateTimeInterface ? $createdAt->toIso8601String() : $createdAt,
+            'updated_at' => $updatedAt instanceof \DateTimeInterface ? $updatedAt->toIso8601String() : $updatedAt,
         ];
     }
 }

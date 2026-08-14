@@ -46,7 +46,8 @@ export interface Attachment {
   file_name: string;
   file_path: string;
   file_size: number;
-  mime_type: string;
+  mime_type?: string | null;
+  file_type?: string | null;
   uploaded_by: number;
   uploader?: User;
   thumbnail_url?: string;

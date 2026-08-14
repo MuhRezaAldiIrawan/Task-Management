@@ -32,6 +32,9 @@ interface TaskFormProps {
 export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskFormProps) {
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const {
     register,
@@ -64,20 +67,48 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
       };
 
       let response;
+      let createdTask: Task | null = null;
+
       if (task) {
         response = await api.updateTask(task.id, payload);
+        createdTask = response.data;
       } else {
         response = await api.createTask(payload);
+        createdTask = response.data;
+
+        if (selectedFile && createdTask?.id) {
+          setIsUploadingFile(true);
+          setUploadProgress(0);
+
+          try {
+            await api.uploadAttachment(createdTask.id, selectedFile, setUploadProgress);
+            addToast({
+              type: 'success',
+              title: 'Attachment uploaded',
+              message: selectedFile.name,
+            });
+          } catch (uploadError) {
+            addToast({
+              type: 'error',
+              title: 'Task created, attachment failed',
+              message: uploadError instanceof Error ? uploadError.message : 'Failed to upload attachment',
+            });
+          } finally {
+            setIsUploadingFile(false);
+            setUploadProgress(0);
+          }
+        }
       }
 
       addToast({
         type: 'success',
         title: task ? 'Task updated' : 'Task created',
-        message: response.message,
+        message: response.message || 'Operation completed successfully',
       });
 
       reset();
-      onSuccess(response.data);
+      setSelectedFile(null);
+      onSuccess(createdTask || response.data);
       onClose();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save task';
@@ -165,12 +196,46 @@ export function TaskForm({ isOpen, onClose, onSuccess, task, users = [] }: TaskF
           {...register('due_date')}
         />
 
+        {!task && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">
+              Attachment (optional)
+            </label>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.zip"
+              onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
+              className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+            />
+            {selectedFile && (
+              <p className="text-xs text-slate-500">
+                Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+            {isUploadingFile && (
+              <div className="space-y-1">
+                <div className="w-full bg-slate-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">Uploading attachment... {uploadProgress}%</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={() => {
+            setSelectedFile(null);
+            setUploadProgress(0);
+            onClose();
+          }}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isLoading}>
+          <Button type="submit" isLoading={isLoading || isUploadingFile}>
             {task ? 'Save Changes' : 'Create Task'}
           </Button>
         </div>

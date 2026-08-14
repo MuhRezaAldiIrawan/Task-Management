@@ -58,12 +58,17 @@ export function TaskDetail({ taskId, isOpen, onClose, onTaskUpdated, onTaskDelet
     try {
       const response = await api.getComments(taskId);
       setComments(response.data);
-    } catch {
-      console.error('Failed to load comments');
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+      addToast({
+        type: 'error',
+        title: 'Unable to load comments',
+        message: error instanceof Error ? error.message : 'Please try again.',
+      });
     } finally {
       setIsCommentsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, addToast]);
 
   const fetchAttachments = useCallback(async () => {
     if (!taskId) return;
@@ -71,10 +76,15 @@ export function TaskDetail({ taskId, isOpen, onClose, onTaskUpdated, onTaskDelet
     try {
       const response = await api.getAttachments(taskId);
       setAttachments(response.data);
-    } catch {
-      console.error('Failed to load attachments');
+    } catch (error) {
+      console.error('Failed to load attachments:', error);
+      addToast({
+        type: 'error',
+        title: 'Unable to load attachments',
+        message: error instanceof Error ? error.message : 'Please try again.',
+      });
     }
-  }, [taskId]);
+  }, [taskId, addToast]);
 
   useEffect(() => {
     if (isOpen && taskId) {
@@ -285,32 +295,36 @@ export function TaskDetail({ taskId, isOpen, onClose, onTaskUpdated, onTaskDelet
 
             {attachments.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {attachments.map((attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="flex items-center gap-2 p-2 bg-slate-50 rounded-md border border-slate-200 group"
-                  >
-                    {isImageFile(attachment.mime_type) ? (
-                      <ImageIcon className="h-5 w-5 text-blue-500" />
-                    ) : (
-                      <FileText className="h-5 w-5 text-slate-500" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[120px]">
-                        {attachment.file_name}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-muted)]">
-                        {formatFileSize(attachment.file_size)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteAttachment(attachment.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-opacity"
+                {attachments.map((attachment) => {
+                  const mimeType = attachment.mime_type ?? attachment.file_type ?? '';
+
+                  return (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center gap-2 p-2 bg-slate-50 rounded-md border border-slate-200 group"
                     >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
+                      {isImageFile(mimeType) ? (
+                        <ImageIcon className="h-5 w-5 text-blue-500" />
+                      ) : (
+                        <FileText className="h-5 w-5 text-slate-500" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[120px]">
+                          {attachment.file_name}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-muted)]">
+                          {formatFileSize(attachment.file_size)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAttachment(attachment.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-opacity"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-[var(--color-text-muted)]">No attachments yet.</p>

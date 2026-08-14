@@ -93,16 +93,19 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
   };
 }
 
-export function isImageFile(mimeType: string): boolean {
+export function isImageFile(mimeType?: string | null): boolean {
+  if (!mimeType || typeof mimeType !== 'string') return false;
   return mimeType.startsWith('image/');
 }
 
-export function getFileIcon(mimeType: string): string {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType.startsWith('video/')) return 'video';
-  if (mimeType.includes('pdf')) return 'file-text';
-  if (mimeType.includes('word') || mimeType.includes('document')) return 'file-text';
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'table';
-  if (mimeType.includes('zip') || mimeType.includes('archive')) return 'archive';
+export function getFileIcon(mimeType?: string | null): string {
+  const value = typeof mimeType === 'string' ? mimeType : '';
+
+  if (value.startsWith('image/')) return 'image';
+  if (value.startsWith('video/')) return 'video';
+  if (value.includes('pdf')) return 'file-text';
+  if (value.includes('word') || value.includes('document')) return 'file-text';
+  if (value.includes('excel') || value.includes('spreadsheet')) return 'table';
+  if (value.includes('zip') || value.includes('archive')) return 'archive';
   return 'file';
 }

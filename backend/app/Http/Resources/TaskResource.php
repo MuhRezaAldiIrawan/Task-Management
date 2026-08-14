@@ -14,19 +14,23 @@ class TaskResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $dueDate = $this->due_date;
+        $createdAt = $this->created_at;
+        $updatedAt = $this->updated_at;
+
         return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'status' => $this->status,
             'priority' => $this->priority,
-            'due_date' => $this->due_date?->toDateString(),
+            'due_date' => $dueDate instanceof \DateTimeInterface ? $dueDate->toDateString() : $dueDate,
             'assigned_user' => new UserResource($this->whenLoaded('assignedUser')),
             'creator' => new UserResource($this->whenLoaded('creator')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at' => $createdAt instanceof \DateTimeInterface ? $createdAt->toIso8601String() : $createdAt,
+            'updated_at' => $updatedAt instanceof \DateTimeInterface ? $updatedAt->toIso8601String() : $updatedAt,
         ];
     }
 }
