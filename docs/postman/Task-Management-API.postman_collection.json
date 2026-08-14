@@ -1,0 +1,1223 @@
+{
+	"info": {
+		"_postman_id": "task-management-api-2024",
+		"name": "Task Management API",
+		"description": "Full-stack Task Management Platform - REST API Collection\n\n## Base URL\n```\nhttp://localhost:8000/api\n```\n\n## Authentication\nAll protected endpoints require Bearer Token in Authorization header.\n\n1. Login first to get the token\n2. Token is automatically stored in environment variable\n3. Use {{token}} in Authorization header for protected routes\n\n## Test Credentials\n| Role | Email | Password |\n|------|-------|----------|\n| Admin | admin@example.com | password |\n| Manager | manager@example.com | password |\n| User | john@example.com | password |",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "AUTHENTICATION",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.data.access_token);",
+									"",
+									"pm.test('Login successful', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Token received', function() {",
+									"    pm.expect(jsonData.data.access_token).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login dengan email dan password untuk mendapatkan JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User (Me)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Response success', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('User data exists', function() {",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "me"]
+						},
+						"description": "Mendapatkan informasi user yang sedang login"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.data.access_token);",
+									"",
+									"pm.test('Token refreshed', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.data.access_token).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "refresh"]
+						},
+						"description": "Memperbarui JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.clear('token');",
+									"",
+									"pm.test('Logout successful', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Logout dan invalidate token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TASKS",
+			"item": [
+				{
+					"name": "List Tasks (with filters)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Tasks retrieved', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Pagination meta exists', function() {",
+									"    pm.expect(jsonData.meta).to.have.property('current_page');",
+									"    pm.expect(jsonData.meta).to.have.property('total');",
+									"    pm.expect(jsonData.meta).to.have.property('per_page');",
+									"});",
+									"",
+									"pm.test('Tasks array exists', function() {",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks?page=1&per_page=10&status=pending&priority=high",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "pending"
+								},
+								{
+									"key": "priority",
+									"value": "high"
+								}
+							]
+						},
+						"description": "Mendapatkan daftar task dengan pagination dan filtering.\n\n**Query Parameters:**\n- `page` - Nomor halaman\n- `per_page` - Item per halaman\n- `status` - Filter status (pending, in_progress, completed, cancelled)\n- `priority` - Filter priority (low, medium, high, urgent)\n- `assigned_to` - Filter by assigned user ID\n- `created_by` - Filter by creator user ID\n- `search` - Search in title/description\n- `sort_by` - Sort field (created_at, updated_at, priority, status)\n- `sort_order` - asc atau desc"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('createdTaskId', jsonData.data.id);",
+									"",
+									"pm.test('Task created', function() {",
+									"    pm.response.to.have.status(201);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Task created successfully');",
+									"});",
+									"",
+									"pm.test('Task has correct data', function() {",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data.title).to.eql('New Task from API');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Task from API\",\n    \"description\": \"This task was created via API for testing purposes\",\n    \"status\": \"pending\",\n    \"priority\": \"high\",\n    \"due_date\": \"2024-12-31\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						},
+						"description": "Membuat task baru.\n\n**Required:**\n- `title` - Judul task\n\n**Optional:**\n- `description` - Deskripsi task\n- `status` - Status (pending, in_progress, completed, cancelled)\n- `priority` - Priority (low, medium, high, urgent)\n- `assigned_user_id` - User ID yang ditugaskan\n- `due_date` - Tanggal deadline (format: YYYY-MM-DD)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task retrieved', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Task has relationships', function() {",
+									"    pm.expect(jsonData.data).to.have.property('assigned_user');",
+									"    pm.expect(jsonData.data).to.have.property('creator');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}"]
+						},
+						"description": "Mendapatkan detail task berdasarkan ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task updated', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Task updated successfully');",
+									"});",
+									"",
+									"pm.test('Status changed', function() {",
+									"    pm.expect(jsonData.data.status).to.eql('in_progress');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Task Title\",\n    \"status\": \"in_progress\",\n    \"priority\": \"urgent\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}"]
+						},
+						"description": "Mengupdate task berdasarkan ID.\n\nSemua field yang diupdate akan dikirim dalam body request."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task deleted', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Task deleted successfully');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}"]
+						},
+						"description": "Menghapus task berdasarkan ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "COMMENTS",
+			"item": [
+				{
+					"name": "List Comments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Comments retrieved', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Comments is array', function() {",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}", "comments"]
+						},
+						"description": "Mendapatkan daftar comment untuk task tertentu"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('createdCommentId', jsonData.data.id);",
+									"",
+									"pm.test('Comment added', function() {",
+									"    pm.response.to.have.status(201);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Comment added successfully');",
+									"});",
+									"",
+									"pm.test('Comment has user', function() {",
+									"    pm.expect(jsonData.data).to.have.property('user');",
+									"    pm.expect(jsonData.data.comment).to.eql('This is a test comment from API');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comment\": \"This is a test comment from API\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}", "comments"]
+						},
+						"description": "Menambahkan comment ke task.\n\n**Required:**\n- `comment` - Isi comment (string, max 5000 characters)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Comment updated', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Comment updated successfully');",
+									"});",
+									"",
+									"pm.test('Comment content updated', function() {",
+									"    pm.expect(jsonData.data.comment).to.eql('Updated comment text');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comment\": \"Updated comment text\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/comments/{{createdCommentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["comments", "{{createdCommentId}}"]
+						},
+						"description": "Mengupdate comment. Hanya owner comment yang bisa mengupdate."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Comment deleted', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('Comment deleted successfully');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/comments/{{createdCommentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["comments", "{{createdCommentId}}"]
+						},
+						"description": "Menghapus comment. Hanya owner comment yang bisa menghapus."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ATTACHMENTS",
+			"item": [
+				{
+					"name": "List Attachments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Attachments retrieved', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Attachments is array', function() {",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/attachments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}", "attachments"]
+						},
+						"description": "Mendapatkan daftar attachment untuk task tertentu"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('createdAttachmentId', jsonData.data.id);",
+									"",
+									"pm.test('File uploaded', function() {",
+									"    pm.response.to.have.status(201);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('File uploaded successfully');",
+									"});",
+									"",
+									"pm.test('Attachment metadata exists', function() {",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('file_name');",
+									"    pm.expect(jsonData.data).to.have.property('mime_type');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "",
+									"description": "Pilih file untuk diupload (max 50MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/attachments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{createdTaskId}}", "attachments"]
+						},
+						"description": "Upload file attachment ke task.\n\n**Supported File Types:**\n- Images: jpg, jpeg, png, gif, webp, svg\n- Documents: pdf, doc, docx, xls, xlsx, txt, csv\n- Videos: mp4, webm\n- Archives: zip\n\n**Max Size:** 50MB"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attachment Thumbnail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Thumbnail response is image', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('image');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}/thumbnail",
+							"host": ["{{baseUrl}}"],
+							"path": ["attachments", "{{createdAttachmentId}}", "thumbnail"]
+						},
+						"description": "Mendapatkan thumbnail untuk image attachment (200x200px)"
+					},
+					"response": []
+				},
+				{
+					"name": "Download Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('File downloaded', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.be.ok;",
+									"});",
+									"",
+									"pm.test('Content-Disposition header exists', function() {",
+									"    pm.expect(pm.response.headers.get('Content-Disposition')).to.be.ok;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}/download",
+							"host": ["{{baseUrl}}"],
+							"path": ["attachments", "{{createdAttachmentId}}", "download"]
+						},
+						"description": "Download file attachment"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Attachment deleted', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"    pm.expect(jsonData.message).to.eql('File deleted successfully');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["attachments", "{{createdAttachmentId}}"]
+						},
+						"description": "Menghapus attachment"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TEST FULL FLOW",
+			"item": [
+				{
+					"name": "1. Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('token', jsonData.data.access_token);",
+									"",
+									"pm.test('Login successful', function() {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('testTaskId', jsonData.data.id);",
+									"",
+									"pm.test('Task created', function() {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Full Flow Test Task\",\n    \"description\": \"Testing full API flow\",\n    \"priority\": \"high\",\n    \"due_date\": \"2024-12-31\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Add Comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set('testCommentId', jsonData.data.id);",
+									"",
+									"pm.test('Comment added', function() {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"comment\": \"This is a test comment\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}", "comments"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Get Task Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task detail retrieved', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.data.comments).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Update Task Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task updated', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.data.status).to.eql('in_progress');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6. Complete Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task completed', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.data.status).to.eql('completed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. Delete Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test('Task deleted', function() {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test('Cleanup complete', function() {",
+									"    console.log('Full API flow test completed successfully!');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{testTaskId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
