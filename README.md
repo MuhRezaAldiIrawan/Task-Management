@@ -38,6 +38,18 @@ php artisan queue:table && php artisan migrate
 php artisan serve --port=8000
 ```
 
+### Frontend Setup
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+```
+
 ### Using Docker
 
 ```bash
@@ -51,9 +63,73 @@ docker-compose exec backend php artisan migrate:fresh --seed
 Access services:
 
 - **API**: http://localhost:8000
+- **Frontend**: http://localhost:3000
 - **PHPMyAdmin**: http://localhost:8080
 - **MySQL**: localhost:3307
 - **Redis**: localhost:6379
+
+## 🌐 Frontend Documentation
+
+### Frontend app structure
+
+```text
+frontend/
+├── app/                 # Next.js App Router pages
+├── components/          # Reusable UI and feature components
+├── lib/                 # API client and shared helpers
+├── public/              # Static assets
+├── types/               # TypeScript shared types
+├── package.json         # Frontend dependencies and scripts
+├── next.config.ts       # Next.js config
+├── tsconfig.json        # TypeScript config
+├── eslint.config.mjs    # ESLint config
+└── README.md            # Frontend-specific documentation
+```
+
+### Frontend stack
+
+- **Next.js 16** - React framework
+- **TypeScript** - type safety
+- **App Router** - page routing and layouts
+- **Tailwind-like utility styling** - component styling approach
+- **JWT token from localStorage** - authenticated API requests
+
+### Frontend features
+
+- login and auth flow
+- dashboard overview
+- task list and filters
+- task creation and editing modal
+- task detail view with comments and attachments
+- task assignment to users
+- responsive layout with sidebar and top bar
+
+### Frontend environment
+
+Create or update the frontend environment file if needed:
+
+```bash
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+```
+
+### Frontend run commands
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+npm run lint
+```
+
+### Frontend important routes
+
+- `/auth/login` - login page
+- `/dashboard` - task dashboard
+- `/dashboard/tasks` - all tasks page
+
+## 📚 API Documentation
 
 ## 📚 API Documentation
 
@@ -162,13 +238,15 @@ curl -X GET http://localhost:8000/api/auth/tasks \
 
 ## 📁 Documentation
 
-| File                                            | Description              |
-| ----------------------------------------------- | ------------------------ |
-| `backend/README.md`                             | Backend setup & API docs |
-| `docs/README.md`                                | API documentation        |
-| `docs/api-docs.json`                            | OpenAPI spec             |
-| `docs/postman/*.json`                           | Postman collection       |
-| `2026-08-13-task-management-platform-design.md` | Design document          |
+| File                                            | Description                    |
+| ----------------------------------------------- | ------------------------------ |
+| `backend/README.md`                             | Backend setup & API docs       |
+| `frontend/README.md`                            | Frontend setup & app docs      |
+| `docs/README.md`                                | API documentation              |
+| `docs/architecture-decisions.md`                | Architecture decision record   |
+| `docs/api-docs.json`                            | OpenAPI spec                   |
+| `docs/postman/*.json`                           | Postman collection             |
+| `2026-08-13-task-management-platform-design.md` | Design document                |
 
 demo link
 
