@@ -9,8 +9,35 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * Authentication Controller
+ *
+ * Handles user authentication including login, logout, and token management.
+ */
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/auth/login",
+     *     summary="User login",
+     *     description="Authenticate user and receive JWT token",
+     *     tags={"Authentication"},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *
+     *             @OA\Property(property="email", type="string", format="email", example="admin@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Login successful"),
+     *     @OA\Response(response=401, description="Invalid credentials")
+     * )
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->only(['email', 'password']);
@@ -27,6 +54,18 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/auth/logout",
+     *     summary="User logout",
+     *     description="Invalidate current JWT token",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(response=200, description="Successfully logged out"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function logout(): JsonResponse
     {
         JWTAuth::invalidate(JWTAuth::getToken());
@@ -37,6 +76,18 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/auth/me",
+     *     summary="Get current user",
+     *     description="Get authenticated user details",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(response=200, description="User details retrieved successfully"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function me(): JsonResponse
     {
         return response()->json([
@@ -45,6 +96,18 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/auth/refresh",
+     *     summary="Refresh JWT token",
+     *     description="Get a new JWT token using current token",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(response=200, description="Token refreshed successfully"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function refresh(): JsonResponse
     {
         return $this->respondWithToken(JWTAuth::refresh(JWTAuth::getToken()));
