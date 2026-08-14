@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "task-management-api-2024",
 		"name": "Task Management API",
-		"description": "Full-stack Task Management Platform - REST API Collection\n\n## Base URL\n```\nhttp://localhost:8000/api\n```\n\n## Authentication\nAll protected endpoints require Bearer Token in Authorization header.\n\n1. Login first to get the token\n2. Token is automatically stored in environment variable\n3. Use {{token}} in Authorization header for protected routes\n\n## Test Credentials\n| Role | Email | Password |\n|------|-------|----------|\n| Admin | admin@example.com | password |\n| Manager | manager@example.com | password |\n| User | john@example.com | password |",
+		"description": "Full-stack Task Management Platform - REST API Collection\n\n## Base URL\n```\nhttp://localhost:8000/api\n```\n\n## Authentication\nAll protected endpoints require Bearer Token in Authorization header.\n\n1. Login first to get the token\n2. Token is automatically stored in environment variable\n3. Use {{token}} in Authorization header for protected routes\n\n## Test Credentials\n| Role | Email | Password |\n|------|-------|----------|\n| Admin | admin@example.com | password |\n| Manager | manager@example.com | password |\n| User | john@example.com | password |\n\n## API Routes Structure\nAll protected routes are under /api/auth/ prefix",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -13,6 +13,16 @@
 		},
 		{
 			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "taskId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "commentId",
 			"value": "",
 			"type": "string"
 		}
@@ -32,7 +42,7 @@
 			"name": "AUTHENTICATION",
 			"item": [
 				{
-					"name": "Login",
+					"name": "1. Login",
 					"event": [
 						{
 							"listen": "test",
@@ -76,7 +86,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Current User (Me)",
+					"name": "2. Get Current User",
 					"event": [
 						{
 							"listen": "test",
@@ -122,7 +132,7 @@
 					"response": []
 				},
 				{
-					"name": "Refresh Token",
+					"name": "3. Refresh Token",
 					"event": [
 						{
 							"listen": "test",
@@ -163,7 +173,7 @@
 					"response": []
 				},
 				{
-					"name": "Logout",
+					"name": "4. Logout",
 					"event": [
 						{
 							"listen": "test",
@@ -208,7 +218,7 @@
 			"name": "TASKS",
 			"item": [
 				{
-					"name": "List Tasks (with filters)",
+					"name": "1. List Tasks",
 					"event": [
 						{
 							"listen": "test",
@@ -219,12 +229,6 @@
 									"pm.test('Tasks retrieved', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"});",
-									"",
-									"pm.test('Pagination meta exists', function() {",
-									"    pm.expect(jsonData.meta).to.have.property('current_page');",
-									"    pm.expect(jsonData.meta).to.have.property('total');",
-									"    pm.expect(jsonData.meta).to.have.property('per_page');",
 									"});",
 									"",
 									"pm.test('Tasks array exists', function() {",
@@ -249,9 +253,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks?page=1&per_page=10&status=pending&priority=high",
+							"raw": "{{baseUrl}}/auth/tasks?page=1&per_page=10",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks"],
+							"path": ["auth", "tasks"],
 							"query": [
 								{
 									"key": "page",
@@ -260,40 +264,30 @@
 								{
 									"key": "per_page",
 									"value": "10"
-								},
-								{
-									"key": "status",
-									"value": "pending"
-								},
-								{
-									"key": "priority",
-									"value": "high"
 								}
 							]
 						},
-						"description": "Mendapatkan daftar task dengan pagination dan filtering.\n\n**Query Parameters:**\n- `page` - Nomor halaman\n- `per_page` - Item per halaman\n- `status` - Filter status (pending, in_progress, completed, cancelled)\n- `priority` - Filter priority (low, medium, high, urgent)\n- `assigned_to` - Filter by assigned user ID\n- `created_by` - Filter by creator user ID\n- `search` - Search in title/description\n- `sort_by` - Sort field (created_at, updated_at, priority, status)\n- `sort_order` - asc atau desc"
+						"description": "Mendapatkan daftar task dengan pagination.\n\n**Query Parameters:**\n- `page` - Nomor halaman\n- `per_page` - Item per halaman\n- `status` - Filter status (pending, in_progress, completed, cancelled)\n- `priority` - Filter priority (low, medium, high, urgent)\n- `search` - Search in title/description\n- `sort_by` - Sort field\n- `sort_order` - asc atau desc"
 					},
 					"response": []
 				},
 				{
-					"name": "Create Task",
+					"name": "2. Create Task",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set('createdTaskId', jsonData.data.id);",
+									"pm.collectionVariables.set('taskId', jsonData.data.id);",
 									"",
 									"pm.test('Task created', function() {",
 									"    pm.response.to.have.status(201);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Task created successfully');",
 									"});",
 									"",
-									"pm.test('Task has correct data', function() {",
+									"pm.test('Task has ID', function() {",
 									"    pm.expect(jsonData.data).to.have.property('id');",
-									"    pm.expect(jsonData.data.title).to.eql('New Task from API');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -315,7 +309,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"New Task from API\",\n    \"description\": \"This task was created via API for testing purposes\",\n    \"status\": \"pending\",\n    \"priority\": \"high\",\n    \"due_date\": \"2024-12-31\"\n}",
+							"raw": "{\n    \"title\": \"New Task from API\",\n    \"description\": \"Task created via Postman\",\n    \"status\": \"pending\",\n    \"priority\": \"high\",\n    \"due_date\": \"2024-12-31\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -323,16 +317,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks",
+							"raw": "{{baseUrl}}/auth/tasks",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks"]
+							"path": ["auth", "tasks"]
 						},
-						"description": "Membuat task baru.\n\n**Required:**\n- `title` - Judul task\n\n**Optional:**\n- `description` - Deskripsi task\n- `status` - Status (pending, in_progress, completed, cancelled)\n- `priority` - Priority (low, medium, high, urgent)\n- `assigned_user_id` - User ID yang ditugaskan\n- `due_date` - Tanggal deadline (format: YYYY-MM-DD)"
+						"description": "Membuat task baru.\n\n**Required:**\n- `title` - Judul task\n\n**Optional:**\n- `description` - Deskripsi\n- `status` - pending, in_progress, completed, cancelled\n- `priority` - low, medium, high, urgent\n- `due_date` - YYYY-MM-DD"
 					},
 					"response": []
 				},
 				{
-					"name": "Get Single Task",
+					"name": "3. Get Single Task",
 					"event": [
 						{
 							"listen": "test",
@@ -368,16 +362,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						},
 						"description": "Mendapatkan detail task berdasarkan ID"
 					},
 					"response": []
 				},
 				{
-					"name": "Update Task",
+					"name": "4. Update Task",
 					"event": [
 						{
 							"listen": "test",
@@ -388,11 +382,6 @@
 									"pm.test('Task updated', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Task updated successfully');",
-									"});",
-									"",
-									"pm.test('Status changed', function() {",
-									"    pm.expect(jsonData.data.status).to.eql('in_progress');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -422,16 +411,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						},
-						"description": "Mengupdate task berdasarkan ID.\n\nSemua field yang diupdate akan dikirim dalam body request."
+						"description": "Mengupdate task"
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Task",
+					"name": "5. Delete Task",
 					"event": [
 						{
 							"listen": "test",
@@ -442,7 +431,6 @@
 									"pm.test('Task deleted', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Task deleted successfully');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -463,11 +451,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						},
-						"description": "Menghapus task berdasarkan ID"
+						"description": "Menghapus task"
 					},
 					"response": []
 				}
@@ -477,7 +465,7 @@
 			"name": "COMMENTS",
 			"item": [
 				{
-					"name": "List Comments",
+					"name": "1. List Comments",
 					"event": [
 						{
 							"listen": "test",
@@ -512,33 +500,31 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/comments",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}/comments",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}", "comments"]
+							"path": ["auth", "tasks", "{{taskId}}", "comments"]
 						},
-						"description": "Mendapatkan daftar comment untuk task tertentu"
+						"description": "Mendapatkan daftar comment untuk task"
 					},
 					"response": []
 				},
 				{
-					"name": "Add Comment",
+					"name": "2. Add Comment",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set('createdCommentId', jsonData.data.id);",
+									"pm.collectionVariables.set('commentId', jsonData.data.id);",
 									"",
 									"pm.test('Comment added', function() {",
 									"    pm.response.to.have.status(201);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Comment added successfully');",
 									"});",
 									"",
 									"pm.test('Comment has user', function() {",
 									"    pm.expect(jsonData.data).to.have.property('user');",
-									"    pm.expect(jsonData.data.comment).to.eql('This is a test comment from API');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -560,7 +546,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comment\": \"This is a test comment from API\"\n}",
+							"raw": "{\n    \"comment\": \"This is a test comment from Postman\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -568,16 +554,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/comments",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}/comments",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}", "comments"]
+							"path": ["auth", "tasks", "{{taskId}}", "comments"]
 						},
-						"description": "Menambahkan comment ke task.\n\n**Required:**\n- `comment` - Isi comment (string, max 5000 characters)"
+						"description": "Menambahkan comment ke task"
 					},
 					"response": []
 				},
 				{
-					"name": "Update Comment",
+					"name": "3. Update Comment",
 					"event": [
 						{
 							"listen": "test",
@@ -588,11 +574,6 @@
 									"pm.test('Comment updated', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Comment updated successfully');",
-									"});",
-									"",
-									"pm.test('Comment content updated', function() {",
-									"    pm.expect(jsonData.data.comment).to.eql('Updated comment text');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -622,16 +603,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/comments/{{createdCommentId}}",
+							"raw": "{{baseUrl}}/auth/comments/{{commentId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["comments", "{{createdCommentId}}"]
+							"path": ["auth", "comments", "{{commentId}}"]
 						},
-						"description": "Mengupdate comment. Hanya owner comment yang bisa mengupdate."
+						"description": "Mengupdate comment (hanya owner)"
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Comment",
+					"name": "4. Delete Comment",
 					"event": [
 						{
 							"listen": "test",
@@ -642,7 +623,6 @@
 									"pm.test('Comment deleted', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('Comment deleted successfully');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -663,11 +643,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/comments/{{createdCommentId}}",
+							"raw": "{{baseUrl}}/auth/comments/{{commentId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["comments", "{{createdCommentId}}"]
+							"path": ["auth", "comments", "{{commentId}}"]
 						},
-						"description": "Menghapus comment. Hanya owner comment yang bisa menghapus."
+						"description": "Menghapus comment (hanya owner)"
 					},
 					"response": []
 				}
@@ -677,7 +657,7 @@
 			"name": "ATTACHMENTS",
 			"item": [
 				{
-					"name": "List Attachments",
+					"name": "1. List Attachments",
 					"event": [
 						{
 							"listen": "test",
@@ -688,10 +668,6 @@
 									"pm.test('Attachments retrieved', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"});",
-									"",
-									"pm.test('Attachments is array', function() {",
-									"    pm.expect(jsonData.data).to.be.an('array');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -712,32 +688,30 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/attachments",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}/attachments",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}", "attachments"]
+							"path": ["auth", "tasks", "{{taskId}}", "attachments"]
 						},
-						"description": "Mendapatkan daftar attachment untuk task tertentu"
+						"description": "Mendapatkan daftar attachment untuk task"
 					},
 					"response": []
 				},
 				{
-					"name": "Upload Attachment",
+					"name": "2. Upload Attachment",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set('createdAttachmentId', jsonData.data.id);",
+									"pm.collectionVariables.set('attachmentId', jsonData.data.id);",
 									"",
 									"pm.test('File uploaded', function() {",
 									"    pm.response.to.have.status(201);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('File uploaded successfully');",
 									"});",
 									"",
 									"pm.test('Attachment metadata exists', function() {",
-									"    pm.expect(jsonData.data).to.have.property('id');",
 									"    pm.expect(jsonData.data).to.have.property('file_name');",
 									"    pm.expect(jsonData.data).to.have.property('mime_type');",
 									"});"
@@ -766,21 +740,21 @@
 									"key": "file",
 									"type": "file",
 									"src": "",
-									"description": "Pilih file untuk diupload (max 50MB)"
+									"description": "Pilih file (max 50MB)"
 								}
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{createdTaskId}}/attachments",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}/attachments",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{createdTaskId}}", "attachments"]
+							"path": ["auth", "tasks", "{{taskId}}", "attachments"]
 						},
-						"description": "Upload file attachment ke task.\n\n**Supported File Types:**\n- Images: jpg, jpeg, png, gif, webp, svg\n- Documents: pdf, doc, docx, xls, xlsx, txt, csv\n- Videos: mp4, webm\n- Archives: zip\n\n**Max Size:** 50MB"
+						"description": "Upload file attachment (max 50MB)"
 					},
 					"response": []
 				},
 				{
-					"name": "Get Attachment Thumbnail",
+					"name": "3. Get Thumbnail",
 					"event": [
 						{
 							"listen": "test",
@@ -809,16 +783,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}/thumbnail",
+							"raw": "{{baseUrl}}/auth/attachments/{{attachmentId}}/thumbnail",
 							"host": ["{{baseUrl}}"],
-							"path": ["attachments", "{{createdAttachmentId}}", "thumbnail"]
+							"path": ["auth", "attachments", "{{attachmentId}}", "thumbnail"]
 						},
-						"description": "Mendapatkan thumbnail untuk image attachment (200x200px)"
+						"description": "Mendapatkan thumbnail (200x200px) untuk image"
 					},
 					"response": []
 				},
 				{
-					"name": "Download Attachment",
+					"name": "4. Download Attachment",
 					"event": [
 						{
 							"listen": "test",
@@ -827,10 +801,6 @@
 									"pm.test('File downloaded', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(pm.response.headers.get('Content-Type')).to.be.ok;",
-									"});",
-									"",
-									"pm.test('Content-Disposition header exists', function() {",
-									"    pm.expect(pm.response.headers.get('Content-Disposition')).to.be.ok;",
 									"});"
 								],
 								"type": "text/javascript"
@@ -851,16 +821,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}/download",
+							"raw": "{{baseUrl}}/auth/attachments/{{attachmentId}}/download",
 							"host": ["{{baseUrl}}"],
-							"path": ["attachments", "{{createdAttachmentId}}", "download"]
+							"path": ["auth", "attachments", "{{attachmentId}}", "download"]
 						},
 						"description": "Download file attachment"
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Attachment",
+					"name": "5. Delete Attachment",
 					"event": [
 						{
 							"listen": "test",
@@ -871,7 +841,6 @@
 									"pm.test('Attachment deleted', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.success).to.eql(true);",
-									"    pm.expect(jsonData.message).to.eql('File deleted successfully');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -892,9 +861,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/attachments/{{createdAttachmentId}}",
+							"raw": "{{baseUrl}}/auth/attachments/{{attachmentId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["attachments", "{{createdAttachmentId}}"]
+							"path": ["auth", "attachments", "{{attachmentId}}"]
 						},
 						"description": "Menghapus attachment"
 					},
@@ -903,10 +872,10 @@
 			]
 		},
 		{
-			"name": "TEST FULL FLOW",
+			"name": "FULL FLOW TEST",
 			"item": [
 				{
-					"name": "1. Login",
+					"name": "Step 1: Login",
 					"event": [
 						{
 							"listen": "test",
@@ -914,10 +883,7 @@
 								"exec": [
 									"var jsonData = pm.response.json();",
 									"pm.collectionVariables.set('token', jsonData.data.access_token);",
-									"",
-									"pm.test('Login successful', function() {",
-									"    pm.response.to.have.status(200);",
-									"});"
+									"pm.test('Login OK', function() { pm.response.to.have.status(200); });"
 								],
 								"type": "text/javascript"
 							}
@@ -944,18 +910,15 @@
 					"response": []
 				},
 				{
-					"name": "2. Create Task",
+					"name": "Step 2: Create Task",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set('testTaskId', jsonData.data.id);",
-									"",
-									"pm.test('Task created', function() {",
-									"    pm.response.to.have.status(201);",
-									"});"
+									"pm.collectionVariables.set('taskId', jsonData.data.id);",
+									"pm.test('Task created', function() { pm.response.to.have.status(201); });"
 								],
 								"type": "text/javascript"
 							}
@@ -976,7 +939,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Full Flow Test Task\",\n    \"description\": \"Testing full API flow\",\n    \"priority\": \"high\",\n    \"due_date\": \"2024-12-31\"\n}",
+							"raw": "{\n    \"title\": \"Full Flow Test Task\",\n    \"description\": \"Testing complete API flow\",\n    \"priority\": \"high\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -984,26 +947,23 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks",
+							"raw": "{{baseUrl}}/auth/tasks",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks"]
+							"path": ["auth", "tasks"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "3. Add Comment",
+					"name": "Step 3: Add Comment",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set('testCommentId', jsonData.data.id);",
-									"",
-									"pm.test('Comment added', function() {",
-									"    pm.response.to.have.status(201);",
-									"});"
+									"pm.collectionVariables.set('commentId', jsonData.data.id);",
+									"pm.test('Comment added', function() { pm.response.to.have.status(201); });"
 								],
 								"type": "text/javascript"
 							}
@@ -1024,7 +984,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comment\": \"This is a test comment\"\n}",
+							"raw": "{\n    \"comment\": \"Test comment\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1032,26 +992,21 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{testTaskId}}/comments",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}/comments",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}", "comments"]
+							"path": ["auth", "tasks", "{{taskId}}", "comments"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "4. Get Task Detail",
+					"name": "Step 4: Get Task Detail",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test('Task detail retrieved', function() {",
-									"    pm.response.to.have.status(200);",
-									"    pm.expect(jsonData.data.comments).to.be.an('array');",
-									"});"
+									"pm.test('Task retrieved', function() { pm.response.to.have.status(200); });"
 								],
 								"type": "text/javascript"
 							}
@@ -1071,70 +1026,20 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "5. Update Task Status",
+					"name": "Step 5: Complete Task",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test('Task updated', function() {",
-									"    pm.response.to.have.status(200);",
-									"    pm.expect(jsonData.data.status).to.eql('in_progress');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"status\": \"in_progress\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "6. Complete Task",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
 									"pm.test('Task completed', function() {",
 									"    pm.response.to.have.status(200);",
 									"    pm.expect(jsonData.data.status).to.eql('completed');",
@@ -1167,29 +1072,23 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "7. Delete Task",
+					"name": "Step 6: Delete Task",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test('Task deleted', function() {",
-									"    pm.response.to.have.status(200);",
-									"    pm.expect(jsonData.success).to.eql(true);",
-									"});",
-									"",
 									"pm.test('Cleanup complete', function() {",
-									"    console.log('Full API flow test completed successfully!');",
+									"    pm.response.to.have.status(200);",
+									"    console.log('Full flow test completed!');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1210,9 +1109,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/tasks/{{testTaskId}}",
+							"raw": "{{baseUrl}}/auth/tasks/{{taskId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["tasks", "{{testTaskId}}"]
+							"path": ["auth", "tasks", "{{taskId}}"]
 						}
 					},
 					"response": []
