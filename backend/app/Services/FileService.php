@@ -7,6 +7,7 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
 class FileService
@@ -33,9 +34,12 @@ class FileService
 
     private const THUMBNAIL_SIZE = 200;
 
-    public function __construct(
-        private readonly ImageManager $imageManager,
-    ) {}
+    private ImageManager $imageManager;
+
+    public function __construct()
+    {
+        $this->imageManager = new ImageManager(new Driver);
+    }
 
     /**
      * @return array<string, mixed>
@@ -46,23 +50,19 @@ class FileService
 
         $extension = $file->getClientOriginalExtension();
         $filename = Str::uuid().'.'.$extension;
-        $path = "attachments/{$taskId}/{$filename}";
+        $relativePath = "attachments/{$taskId}/{$filename}";
 
-        Storage::disk('public')->putFileAs(
-            dirname($path),
-            $file,
-            basename($path)
-        );
-
-        $fullPath = Storage::disk('public')->path($path);
+        // Store the file using Storage facade
+        $fileContent = file_get_contents($file->getRealPath());
+        Storage::disk('public')->put($relativePath, $fileContent);
 
         if ($this->isImageFile($file)) {
-            $this->generateThumbnail($fullPath);
+            $this->generateThumbnail($relativePath);
         }
 
         return [
             'file_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
+            'file_path' => $relativePath,
             'file_size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
         ];
@@ -70,34 +70,29 @@ class FileService
 
     public function delete(string $filePath): bool
     {
-        $fullPath = $this->getFullPath($filePath);
+        Storage::disk('public')->delete($filePath);
 
-        if (file_exists($fullPath)) {
-            unlink($fullPath);
-        }
-
+        // Delete thumbnail if exists
         $thumbnailPath = $this->getThumbnailPath($filePath);
-        if ($thumbnailPath !== null && file_exists($thumbnailPath)) {
-            unlink($thumbnailPath);
+        if ($thumbnailPath) {
+            Storage::disk('public')->delete($thumbnailPath);
         }
 
         return true;
     }
 
+    public function getThumbnailPath(string $filePath): ?string
+    {
+        $directory = pathinfo($filePath, PATHINFO_DIRNAME);
+        $filename = pathinfo($filePath, PATHINFO_FILENAME);
+        $thumbnailPath = "{$directory}/thumb_{$filename}.jpg";
+
+        return Storage::disk('public')->exists($thumbnailPath) ? $thumbnailPath : null;
+    }
+
     public function getFullPath(string $relativePath): string
     {
         return Storage::disk('public')->path($relativePath);
-    }
-
-    public function getThumbnailPath(string $filePath): ?string
-    {
-        $directory = dirname($filePath);
-        $filename = pathinfo($filePath, PATHINFO_FILENAME);
-        $extension = 'jpg';
-
-        $thumbnailPath = "{$directory}/thumb_{$filename}.{$extension}";
-
-        return Storage::disk('public')->exists($thumbnailPath) ? $thumbnailPath : null;
     }
 
     private function validateFile(UploadedFile $file): void
@@ -116,19 +111,23 @@ class FileService
         return str_starts_with($file->getMimeType(), 'image/');
     }
 
-    private function generateThumbnail(string $originalPath): void
+    private function generateThumbnail(string $relativePath): void
     {
-        $directory = dirname($originalPath);
-        $filename = pathinfo($originalPath, PATHINFO_FILENAME);
-        $thumbnailFilename = "thumb_{$filename}.jpg";
-        $thumbnailPath = "{$directory}/{$thumbnailFilename}";
+        $directory = pathinfo($relativePath, PATHINFO_DIRNAME);
+        $filename = pathinfo($relativePath, PATHINFO_FILENAME);
+        $thumbnailPath = "{$directory}/thumb_{$filename}.jpg";
 
-        $image = $this->imageManager->read($originalPath);
+        // Read original image content
+        $originalContent = Storage::disk('public')->get($relativePath);
+        if (! $originalContent) {
+            return;
+        }
+
+        // Create thumbnail using Intervention Image
+        $image = $this->imageManager->decode($originalContent);
         $image->cover(self::THUMBNAIL_SIZE, self::THUMBNAIL_SIZE);
 
-        Storage::disk('public')->put(
-            $thumbnailPath,
-            $image->toJpeg(80)
-        );
+        // Save thumbnail
+        Storage::disk('public')->put($thumbnailPath, $image->encode()->toString());
     }
 }
