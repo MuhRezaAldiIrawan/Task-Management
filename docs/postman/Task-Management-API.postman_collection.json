@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "task-management-api-2024",
 		"name": "Task Management API",
-		"description": "Full-stack Task Management Platform - REST API Collection\n\n## Base URL\n```\nhttp://localhost:8000/api\n```\n\n## Authentication\nAll protected endpoints require Bearer Token in Authorization header.\n\n1. Login first to get the token\n2. Token is automatically stored in environment variable\n3. Use {{token}} in Authorization header for protected routes\n\n## Test Credentials\n| Role | Email | Password |\n|------|-------|----------|\n| Admin | admin@example.com | password |\n| Manager | manager@example.com | password |\n| User | john@example.com | password |\n\n## API Routes Structure\nAll protected routes are under /api/auth/ prefix",
+		"description": "Full-stack Task Management Platform - REST API Collection\n\n## API Documentation\n- **Swagger UI**: http://localhost:8000/api/documentation\n- **OpenAPI JSON**: http://localhost:8000/docs\n\n## Base URL\n```\nhttp://localhost:8000/api\n```\n\n## Authentication\nAll protected endpoints require Bearer Token in Authorization header.\n\n1. Login first to get the token\n2. Token is automatically stored in environment variable\n3. Use {{token}} in Authorization header for protected routes\n\n## Test Credentials\n| Role | Email | Password |\n|------|-------|----------|\n| Admin | admin@example.com | password |\n| Manager | manager@example.com | password |\n| User | john@example.com | password |\n\n## API Routes Structure\nAll protected routes are under /api/auth/ prefix",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -546,7 +546,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comment\": \"This is a test comment from Postman\"\n}",
+							"raw": "{\n    \"content\": \"This is a test comment from Postman\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -595,7 +595,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comment\": \"Updated comment text\"\n}",
+							"raw": "{\n    \"content\": \"Updated comment text\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -984,7 +984,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"comment\": \"Test comment\"\n}",
+							"raw": "{\n    \"content\": \"Test comment\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
