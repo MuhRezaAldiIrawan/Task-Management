@@ -23,17 +23,12 @@ class TaskService
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $page = (int) ($filters['page'] ?? 1);
 
-        // Create cache key based on filters
-        $cacheKey = $this->buildTasksCacheKey($filters);
-
-        return Cache::remember(
-            $cacheKey,
-            self::TASK_LIST_CACHE_TTL,
-            fn () => Task::with(['assignedUser:id,name,email', 'creator:id,name,email'])
-                ->filter($filters)
-                ->orderBy($sortBy, $sortOrder)
-                ->paginate($perPage)
-        );
+        // Temporarily disable caching due to serialization issues
+        // TODO: Fix cache serialization for paginator objects
+        return Task::with(['assignedUser:id,name,email', 'creator:id,name,email'])
+            ->filter($filters)
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate($perPage);
     }
 
     public function createTask(array $data): Task
@@ -57,18 +52,13 @@ class TaskService
 
     public function getTask(int $id): Task
     {
-        $cacheKey = "task:{$id}";
-
-        return Cache::remember(
-            $cacheKey,
-            self::TASK_DETAIL_CACHE_TTL,
-            fn () => Task::with([
-                'assignedUser:id,name,email',
-                'creator:id,name,email',
-                'comments.user:id,name,email',
-                'attachments',
-            ])->findOrFail($id)
-        );
+        // Temporarily disable caching due to serialization issues
+        return Task::with([
+            'assignedUser:id,name,email',
+            'creator:id,name,email',
+            'comments.user:id,name,email',
+            'attachments',
+        ])->findOrFail($id);
     }
 
     public function updateTask(Task $task, array $data): Task
